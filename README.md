@@ -1,2 +1,2 @@
-# PhotoPlayer
-图片播放器(幻灯片类型图片播放)
+# QtiLogger
+基于高通8.1的Android Log录制工具，可以录制Android Log，Bluetooth Log，kmsg，QXDM，net log，bugreport等等。
