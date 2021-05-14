@@ -1,0 +1,103 @@
+//
+// Created by zhouxian on 21-4-16.
+//
+
+//define LOG_TAG "zxlogger"
+
+#include <cutils/properties.h>
+
+//#include <binder/IPCThreadState.h>
+#include <binder/ProcessState.h>
+#include <binder/IServiceManager.h>
+
+#include <utils/Log.h>
+#include <utils/threads.h>
+
+//#if defined(HAVE_PTHREADS)
+//# include <pthread.h>
+//# include <sys/resource.h>
+//#endif
+
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/input.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/un.h>
+#include <pthread.h>
+#include <time.h>
+#include <unistd.h>
+
+#include <ctype.h>
+#include <limits.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include "zxlogger.h"
+//#ifdef CONFIG_BSP_SYS_LIBTCPDUMP_SUPPORT
+//#include "../libtcpdump/tcpdump.h"
+//#endif
+
+
+using namespace android;
+
+bool NetLogDevice::threadLoop()
+{
+
+    ALOGD("%s threadLoop run!\n", getName().string());
+    const String8 net("tcpdump -vv -s 0 -w ");
+    String8 cmd(""); 
+    String8 timeStamp("");
+    //#ifdef CONFIG_BSP_SYS_LIBTCPDUMP_SUPPORT
+    //int k = 0;
+    //char buf[TCPDUMP_ARGS_MAX_LEN];
+    //char *split_str[SPLIT_MAX_NUM+1];
+    //char **argv = split_str;
+    //#endif
+
+    generateTimestamp( timeStamp );
+
+    cmd = net + logPath + "/" + logDir + "/tcp_" 
+          + timeStamp + ".cap";
+    ALOGD("tcpdump cmd is  %s \n", cmd.string() );
+
+    //#ifdef CONFIG_BSP_SYS_LIBTCPDUMP_SUPPORT
+    //memset(split_str,0,sizeof(split_str));
+    //memset(buf, 0, sizeof(buf));
+
+    //strncpy(buf,cmd.string(),sizeof(buf)-1);
+
+    //k = split_string(split_str,SPLIT_MAX_NUM,buf,' ');
+
+    //if (k >0 && k < SPLIT_MAX_NUM)
+    //{
+    //    tcpdump_main(k,argv);
+    //}
+    //else
+    //{
+    //    ALOGE("Capture Netlog fail, (args error)\n");
+    //    printf("Capture Netlog fail, (args error)\n");
+    //}
+    //#else
+    system( cmd.string() );
+    //#endif
+
+    for ( ;; )
+    {
+        sleep( 60 );
+    }
+
+    printf( "%s threadLoop exit!\n", getName().string() );
+
+    return 0;
+
+}
+
+

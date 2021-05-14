@@ -1,0 +1,109 @@
+on post-fs-data
+    mkdir /data/zxlog 0755 root root
+
+on property:sys.boot_completed=1
+    write /sys/module/boot_hung_monitor/parameters/boot_completed "1"
+    stop zxboothung
+
+service zxoffchglogger /vendor/bin/zxlogger <mode=poweroffcharger>
+    class charger
+    user root
+    group root
+    oneshot
+    disabled
+
+service zxbootlogger /vendor/bin/zxlogger <mode=boot>
+    class main
+    user root
+    group root system
+    oneshot
+    seclabel u:r:zxlogger:s0
+
+service zxboothung /vendor/bin/zxlogger <mode=boot_hung_monitor>
+    class main
+    user root
+    group root system
+    oneshot
+    seclabel u:r:zxboothung:s0
+
+service logcp /vendor/bin/sh /vendor/bin/logcp.sh
+    class main
+    user root
+    group root system
+    oneshot
+    disabled
+    seclabel u:r:logcp:s0
+
+service modem /vendor/bin/sh /vendor/bin/modem.sh
+    class main
+    user root
+    group root system
+    oneshot
+    disabled
+    seclabel u:r:modem:s0
+
+on property:debug.sys.logger.running=1
+    start zxlogger
+    stop zxbootlogger
+    start logcp
+
+on property:debug.sys.logger.running=0
+    setprop debug.sys.logger.modem 0
+    setprop debug.sys.logger.tcpdump_all 0
+    setprop debug.sys.logger.tcpdump_wlan 0
+    stop zxlogger
+    stop zxbootlogger
+
+on property:debug.sys.logger.modem=1
+    start start_diag_mdlog
+
+on property:debug.sys.logger.modem=0
+    start stop_diag_mdlog
+
+on property:debug.sys.logger.tcpdump_all=1
+    start mytcpdump
+
+on property:debug.sys.logger.tcpdump_all=0
+    stop mytcpdump
+
+on property:debug.sys.logger.tcpdump_wlan=1
+    start mytcpdumpwlan
+
+on property:debug.sys.logger.tcpdump_wlan=0
+    stop mytcpdumpwlan
+
+service start_diag_mdlog /vendor/bin/diag_mdlog -f /vendor/etc/modemmask.cfg -s 50 -o /storage/emulated/0/zxlog/temp/modem -c
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+
+service stop_diag_mdlog /vendor/bin/diag_mdlog -k
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+
+service mytcpdump /vendor/bin/mytcpdump -ennXXSs0 -i any -C 50 -W 2 -w /storage/emulated/0/zxlog/temp/net/net_all.cap
+    class main
+    user root
+    group root
+    oneshotmyt
+    disabled
+
+service mytcpdumpwlan /vendor/bin/mytcpdump -ennXXSs0 -i wlan0 -C 50 -W 2 -w /storage/emulated/0/zxlog/temp/net/net_wlan.cap
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+
+service zxlogger /vendor/bin/zxlogger
+    class main
+    user root
+    group root system
+    oneshot
+    disabled
+
